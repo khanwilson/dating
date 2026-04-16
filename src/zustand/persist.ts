@@ -23,6 +23,9 @@ export interface PersistState {
   userProfile?: UserProfile;
   matchPreferences?: MatchPreferences;
   onboardingStep?: number; // 1..9; undefined = not started
+  // Swipe state (DAT-008)
+  iLiked?: string[];
+  iPassed?: string[];
 
   // Actions
   save: <K extends keyof PersistState>(key: K, value: PersistState[K]) => void;
@@ -31,6 +34,8 @@ export interface PersistState {
   setUserProfile: (profile: Partial<UserProfile>) => void;
   setMatchPreferences: (prefs: Partial<MatchPreferences>) => void;
   setOnboardingStep: (step: number) => void;
+  addLiked: (id: string) => void;
+  addPassed: (id: string) => void;
   clearProfile: () => void;
   logout: () => void;
   reset: () => void;
@@ -59,13 +64,18 @@ const ZustandPersist = create<PersistState>()(
 
       setOnboardingStep: (step) => set({ onboardingStep: step }),
 
+      addLiked: (id) => set({ iLiked: [...(get().iLiked ?? []), id] }),
+      addPassed: (id) => set({ iPassed: [...(get().iPassed ?? []), id] }),
+
       clearProfile: () => set({
         userProfile: undefined,
         matchPreferences: undefined,
         onboardingStep: undefined,
+        iLiked: undefined,
+        iPassed: undefined,
       }),
 
-      // Logout - clear auth data + dating profile
+      // Logout - clear auth data + dating profile + swipe state
       logout: () => set({
         accessToken: undefined,
         refreshToken: undefined,
@@ -73,6 +83,8 @@ const ZustandPersist = create<PersistState>()(
         userProfile: undefined,
         matchPreferences: undefined,
         onboardingStep: undefined,
+        iLiked: undefined,
+        iPassed: undefined,
       }),
 
       // Reset all state
@@ -91,6 +103,8 @@ const ZustandPersist = create<PersistState>()(
         userProfile: state.userProfile,
         matchPreferences: state.matchPreferences,
         onboardingStep: state.onboardingStep,
+        iLiked: state.iLiked,
+        iPassed: state.iPassed,
       }),
     }
   )

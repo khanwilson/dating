@@ -11,6 +11,9 @@ export default function SplashScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   useEffect(() => {
+    // TODO: remove after clearing data
+    ZustandPersist.getState().logout();
+
     const timer = setTimeout(() => {
       const state = ZustandPersist.getState();
 
