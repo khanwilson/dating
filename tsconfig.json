@@ -8,6 +8,7 @@
       "components/*": ["src/components/*"],
       "assets/*": ["src/assets/*"],
       "constants/*": ["src/constants/*"],
+      "types/*": ["src/types/*"],
       "utils/*": ["src/utils/*"],
       "theme/*": ["src/theme/*"],
       "zustand/*": ["src/zustand/*"],

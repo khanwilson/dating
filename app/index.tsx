@@ -1,44 +1,37 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getOnboardingRoute } from 'components/onboarding/useOnboardingStep';
 import { AppText } from 'components/text/AppText';
 import { router } from 'expo-router';
 import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ITheme, useAppTheme } from 'theme/index';
+import ZustandPersist from 'zustand/persist';
 
 export default function SplashScreen() {
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   useEffect(() => {
-    const checkOnboardingStatus = async () => {
-      try {
-        const hasSeenOnboarding = await AsyncStorage.getItem('hasSeenOnboarding');
+    const timer = setTimeout(() => {
+      const state = ZustandPersist.getState();
 
-        // Simulate loading time
-        setTimeout(() => {
-          if (hasSeenOnboarding === 'true') {
-            // Temporary: SigninStack was removed in DAT-001; full onboarding
-            // routing is rebuilt in ONBOARD-SHELL-001. Send users straight in.
-            router.replace('/(tabs)/HomeScreen');
-          } else {
-            // User hasn't seen onboarding
-            router.replace('/OnBoardingScreen');
-          }
-        }, 2000); // 2 seconds
-      } catch (error) {
-        console.error('Error checking onboarding status:', error);
-        // Fallback: go to onboarding
-        router.replace('/OnBoardingScreen');
+      if (state.userProfile?.completed) {
+        // Profile complete — go to main app
+        router.replace('/(tabs)/SwipeScreen' as any);
+        return;
       }
-    };
 
-    checkOnboardingStatus();
+      // Profile not complete — resume or start onboarding
+      const step = state.onboardingStep ?? 1;
+      router.replace(getOnboardingRoute(step) as any);
+    }, 1500);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
     <View style={styles.container}>
-      <AppText style={styles.title}>Template</AppText>
-      <AppText style={styles.subtitle}>Focus with comfort</AppText>
+      <AppText style={styles.title}>Dating</AppText>
+      <AppText style={styles.subtitle}>Find your match</AppText>
     </View>
   );
 }

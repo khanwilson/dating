@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LANGUAGES, ModeTheme } from 'constants/enum';
+import { MatchPreferences, UserProfile } from 'types/user';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -12,17 +13,25 @@ export interface PersistState {
   // Auth
   accessToken?: string;
   refreshToken?: string;
-  // User
+  // User (legacy — from template; kept for backward compat with existing persisted state)
   user?: {
     id: string;
     email: string;
     name: string;
   };
+  // Dating profile (DAT-002)
+  userProfile?: UserProfile;
+  matchPreferences?: MatchPreferences;
+  onboardingStep?: number; // 1..9; undefined = not started
 
   // Actions
   save: <K extends keyof PersistState>(key: K, value: PersistState[K]) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
   setUser: (user: PersistState['user']) => void;
+  setUserProfile: (profile: Partial<UserProfile>) => void;
+  setMatchPreferences: (prefs: Partial<MatchPreferences>) => void;
+  setOnboardingStep: (step: number) => void;
+  clearProfile: () => void;
   logout: () => void;
   reset: () => void;
 }
@@ -30,7 +39,7 @@ export interface PersistState {
 // Create the store with persist middleware
 const ZustandPersist = create<PersistState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       // Generic save function for any key
       save: (key, value) => set({ [key]: value }),
 
@@ -41,11 +50,29 @@ const ZustandPersist = create<PersistState>()(
       // Set user data
       setUser: (user) => set({ user }),
 
-      // Logout - clear auth data
+      // Dating profile actions
+      setUserProfile: (profile) =>
+        set({ userProfile: { ...get().userProfile, ...profile } as UserProfile }),
+
+      setMatchPreferences: (prefs) =>
+        set({ matchPreferences: { ...get().matchPreferences, ...prefs } as MatchPreferences }),
+
+      setOnboardingStep: (step) => set({ onboardingStep: step }),
+
+      clearProfile: () => set({
+        userProfile: undefined,
+        matchPreferences: undefined,
+        onboardingStep: undefined,
+      }),
+
+      // Logout - clear auth data + dating profile
       logout: () => set({
         accessToken: undefined,
         refreshToken: undefined,
         user: undefined,
+        userProfile: undefined,
+        matchPreferences: undefined,
+        onboardingStep: undefined,
       }),
 
       // Reset all state
@@ -61,6 +88,9 @@ const ZustandPersist = create<PersistState>()(
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
         user: state.user,
+        userProfile: state.userProfile,
+        matchPreferences: state.matchPreferences,
+        onboardingStep: state.onboardingStep,
       }),
     }
   )
