@@ -17,8 +17,9 @@ export default function SplashScreen() {
         // Simulate loading time
         setTimeout(() => {
           if (hasSeenOnboarding === 'true') {
-            // User has seen onboarding, go to signin
-            router.replace('/SigninStack/SigninScreen');
+            // Temporary: SigninStack was removed in DAT-001; full onboarding
+            // routing is rebuilt in ONBOARD-SHELL-001. Send users straight in.
+            router.replace('/(tabs)/HomeScreen');
           } else {
             // User hasn't seen onboarding
             router.replace('/OnBoardingScreen');

@@ -1,6 +1,8 @@
-import { iLocalization } from '../iLocalization';
-
-const en: iLocalization = {
+// No `: iLocalization` annotation: the interface lists only the canonical
+// keys used by `getString`; the resource literal carries many extra strings
+// (and a few function-valued helpers) that should not trigger excess-property
+// checks. DOMAIN-001 will introduce a tighter, dating-specific catalog.
+const en = {
   en: 'English',
   vi: 'Vietnamese',
   ja: 'Japanese',

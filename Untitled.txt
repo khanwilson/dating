@@ -1,0 +1,14 @@
+ trước tiên tạo cho tôi file Plan.md. bên trong chứa kịch bản cho app hẹn hò của chúng ta. bạn biết app tinder chứ? chúng ta có thể dựa theo họ. Sau phần onboarding mang tính hỏi 1 số thông tin cá nhân của người dùng, và thay thế cho signup.
+mỗi màn hình hỏi về 1 mục liên quan đến người dùng thôi, ví dụ:
+mọi người có thể gọi bạn là gì? -> ngày tháng năm sinh (tự tính ra cung hoàng đạo cho họ) -> giới tính của bạn -> giới tính mà bạn muốn tìm hiểu -> khoảng tuổi mà họ muốn kết nối từ bn đến bn-> 1 list QA dạng chip pick question về sở thích: chơi game, thể loại nhạc yêu thích, môn thể thao yêu thích, loại thú cưng đang nuôi,.. -> upload ảnh profile ít nhất 1, nhiều nhất 6 -> phạm vi xa nhất mà họ muốn kết nối -> muốn mối quan hệ như nào: ngắn, dài, bạn bè.
+
+thì người dùng được truy cập vào app, trong app là apptab gồm 5 tab. 
+Tab chính là swipe sẽ hiển thị những người có target phù hợp với phần cài đặt của người dùng: giới tính phù hợp, độ tuổi phù hợp, khoảng cách, sở thích,...
+tab 2 là khám phá. Sẽ kiểu như có các badge nhóm người dùng chia theo câu hỏi ở onboarding ấy, ví dụ: mối quan hệ bạn bè, long term,...
+tab 3 là like: bên trong là 1 apptab có 2 tab. 1 là những người mk đã tim, 2 là những người đã tim mình.
+tab 4 là chat, làm như messager vậy thôi về các trạng thái, logic same same vậy. Mở tab ra thì là list người đã nhắn với mk, mở ra thì ra chat box. 
+tab 5 là profile
+
+
+
+Giờ hãy viết file Plan.md và xem với các component hiện tại cái nào ko cần xóa đi. rồi split ra thành các task để dùng harness thực hiện chúng tuần tự.

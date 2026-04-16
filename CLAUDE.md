@@ -65,3 +65,16 @@ Two stores by design:
 - No iOS/Android native folders are committed (`/ios`, `/android` are gitignored — managed Expo workflow).
 - `expo-env.d.ts` is checked in even though `.gitignore` lists it; leave it alone unless asked.
 - Several `.DS_Store` files are tracked. Don't add more.
+
+## Outer Harness (`.harness/`)
+
+This repo uses an Outer Harness for AI-assisted work — process and audit artifacts that wrap the model. **Read `.harness/AGENTS.md` first** at the start of every session; it tells you what context to load, how to log runs, and what boundaries to respect.
+
+Key entrypoints:
+- `.harness/AGENTS.md` — agent operating instructions (load this first)
+- `.harness/knowledge/project.md` — bridges org rules → this CLAUDE.md
+- `.harness/init.sh <task-id> "<title>"` — bootstrap a new tracked task
+- `.harness/gates/run-gates.sh` — pre-merge lint + typecheck + test
+- `.harness/logs/runs.jsonl` — append-only audit trail (auto-populated by the `Stop` hook wired in `.claude/settings.json`)
+
+Do not edit anything inside `.harness/` (other than appending to `runs.jsonl`, `tasks/INDEX.md`, or creating new task dirs) without recording the change in `.harness/governance/CHANGELOG.md`.

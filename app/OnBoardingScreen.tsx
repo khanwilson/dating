@@ -35,10 +35,10 @@ export default function OnboardingScreen() {
       // Save onboarding viewed status
       try {
         await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-        router.replace('/SigninStack/SigninScreen');
+        router.replace('/(tabs)/HomeScreen');
       } catch (error) {
         console.error('Error saving onboarding status:', error);
-        router.replace('/SigninStack/SigninScreen');
+        router.replace('/(tabs)/HomeScreen');
       }
     }
   };
@@ -47,10 +47,10 @@ export default function OnboardingScreen() {
     // Save onboarding viewed status when skipping
     try {
       await AsyncStorage.setItem('hasSeenOnboarding', 'true');
-      router.replace('/SigninStack/SigninScreen');
+      router.replace('/(tabs)/HomeScreen');
     } catch (error) {
       console.error('Error saving onboarding status:', error);
-      router.replace('/SigninStack/SigninScreen');
+      router.replace('/(tabs)/HomeScreen');
     }
   };
 

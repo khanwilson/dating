@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { LayoutChangeEvent, Modal, Platform, Pressable, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from 'theme/index';
+import { useAppTheme } from 'theme/index';
 import { IAppTooltipProps } from '.';
 import { styles } from './tooltip.styles';
 
@@ -14,7 +14,7 @@ export const TooltipModal = React.memo((props: ITooltipModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [pos, setPos] = useState({ x: 0, y: 0, w: 0, h: 0 });
   const [posContent, setPosContent] = useState({ width: 0, height: 0 });
-  const theme = useTheme();
+  const theme = useAppTheme();
   const insets = useSafeAreaInsets();
 
   const onMeasure = useCallback(() => {
@@ -65,7 +65,7 @@ export const TooltipModal = React.memo((props: ITooltipModalProps) => {
         {/* ===== Tooltip overlay ===== */}
         <Modal visible={isOpen} transparent={true} animationType="fade" statusBarTranslucent={true}>
           <TouchableOpacity
-            style={{ flex: 1, backgroundColor: `${theme.color.background}90` }} // backdrop color
+            style={{ flex: 1, backgroundColor: `${theme.color.neutral[900]}90` }} // backdrop color
             activeOpacity={1}
             onPress={() => {
               setIsOpen(false);

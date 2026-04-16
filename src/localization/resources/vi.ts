@@ -1,6 +1,5 @@
-import { iLocalization } from '../iLocalization';
-
-const vi: iLocalization = {
+// See en.ts for why the `: iLocalization` annotation is intentionally absent.
+const vi = {
   en: 'Tiếng Anh',
   vi: 'Tiếng Việt',
   ja: 'Tiếng Nhật',
