@@ -1,3 +1,5 @@
+import type { AxiosError, InternalAxiosRequestConfig } from 'axios';
+
 // Base API Response Types - shared across all modules
 export interface ApiResponse<T> {
   data: T;
@@ -14,30 +16,31 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public statusCode?: number,
-    public data?: any
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
+export interface ApiError extends Error {
+  config?: InternalAxiosRequestConfig<any>;
+  statusCode?: number;
+  data?: any;
 }
 
-export const handleApiError = (error: any): ApiError => {
+export const handleApiError = (error: AxiosError<any>): ApiError => {
   // Server responded with error status
+  const apiError: ApiError = {
+    name: 'API Error',
+    message: error.message || 'An unexpected error occurred',
+  }
   if (error.response) {
-    return new ApiError(
-      error.response.data?.message || error.message || 'An error occurred',
-      error.response.status,
-      error.response.data
-    );
+    apiError.message = error.response.data?.message || error.message || 'An error occurred';
+    apiError.config = error.response.config;
+    apiError.statusCode = error.response.status;
+    apiError.data = error.response.data;
+
+    return apiError;
   }
   // Request was made but no response received
   if (error.request) {
-    return new ApiError('No response from server', 0);
+    apiError.message = 'No response received from server';
+    apiError.config = error.request;
+    return apiError;
   }
-  // Something else happened
-  return new ApiError(error.message || 'An unexpected error occurred');
+  return apiError;
 };

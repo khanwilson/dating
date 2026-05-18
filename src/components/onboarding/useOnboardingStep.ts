@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 const ONBOARDING_ROUTES = [
   '/OnboardingStack/NameScreen',
+  '/OnboardingStack/PhoneScreen',
   '/OnboardingStack/BirthdayScreen',
   '/OnboardingStack/GenderScreen',
   '/OnboardingStack/LookingForScreen',
@@ -14,7 +15,7 @@ const ONBOARDING_ROUTES = [
   '/OnboardingStack/RelationshipTypeScreen',
 ] as const;
 
-export const TOTAL_STEPS = ONBOARDING_ROUTES.length; // 9
+export const TOTAL_STEPS = ONBOARDING_ROUTES.length; // 10
 
 export function getOnboardingRoute(step: number): string {
   const idx = Math.max(0, Math.min(step - 1, ONBOARDING_ROUTES.length - 1));

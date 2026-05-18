@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppText } from 'components/text/AppText';
 import { Candidate, getCandidates } from 'src/data/mockCandidates';
 import { Image } from 'expo-image';
+import { useLocation } from 'api/hooks/index';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -27,6 +28,8 @@ export default function SwipeScreen() {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
+
+  const locationState = useLocation();
 
   const prefs = ZustandPersist(useShallow((s) => s.matchPreferences));
   const profile = ZustandPersist(useShallow((s) => s.userProfile));

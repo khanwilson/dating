@@ -20,6 +20,8 @@ export interface InterestQuestion {
 export interface UserProfile {
   id: string;
   displayName: string;
+  phoneCode: string;
+  phoneNumber: string;
   birthDate: string; // ISO date string (YYYY-MM-DD)
   zodiac: Zodiac;
   gender: Gender;

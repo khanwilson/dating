@@ -1,36 +1,43 @@
 import { apiClient } from 'api/axios/client';
 import { ENDPOINTS } from 'api/axios/config';
 
-// Types
-export interface LoginRequest {
-  email: string;
-  password: string;
+export interface RegisterRequest {
+  phoneCode: string;
+  phoneNumber: string;
 }
 
-export interface LoginResponse {
+export interface RequestOtpRequest {
+  phoneCode: string;
+  phoneNumber: string;
+}
+
+export interface VerifyOtpRequest {
+  phoneCode: string;
+  phoneNumber: string;
+  otp: string;
+}
+
+export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
   user: {
     id: string;
-    email: string;
-    name: string;
+    phoneCode: string;
+    phoneNumber: string;
   };
 }
 
-export interface RegisterRequest {
-  email: string;
-  password: string;
-  name: string;
-}
-
-// API Functions
 export const authService = {
-  login: (data: LoginRequest): Promise<LoginResponse> => {
-    return apiClient.post(ENDPOINTS.AUTH.LOGIN, data);
+  register: (data: RegisterRequest): Promise<AuthResponse> => {
+    return apiClient.post(ENDPOINTS.AUTH.REGISTER, data);
   },
 
-  register: (data: RegisterRequest): Promise<LoginResponse> => {
-    return apiClient.post(ENDPOINTS.AUTH.REGISTER, data);
+  requestOtp: (data: RequestOtpRequest): Promise<void> => {
+    return apiClient.post(ENDPOINTS.AUTH.REQUEST_OTP, data);
+  },
+
+  verifyOtp: (data: VerifyOtpRequest): Promise<AuthResponse> => {
+    return apiClient.post(ENDPOINTS.AUTH.VERIFY_OTP, data);
   },
 
   logout: (): Promise<void> => {

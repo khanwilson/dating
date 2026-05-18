@@ -1,5 +1,5 @@
 // Auth hooks
-export { useLogin, useLogout, useRegister, AUTH_KEYS } from './useAuth';
+export { useLogout, useRegister, useRequestOtp, useVerifyOtp, AUTH_KEYS } from './useAuth';
 
 // User hooks
 export { useUpdateProfile, useUserProfile, USER_KEYS } from './useUser';
@@ -12,3 +12,7 @@ export { useCandidates, useLike, useLikedMe, usePass, MATCH_KEYS } from './useMa
 
 // Chat hooks
 export { useConversations, useMarkAsRead, useMessages, useSendMessage, CHAT_KEYS } from './useChat';
+
+// Location hooks
+export { useLocation } from './useLocation';
+export type { Coordinates, LocationState } from './useLocation';

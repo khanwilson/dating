@@ -28,6 +28,13 @@
     "plugins": [
       "expo-router",
       [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow app to use your location to show nearby profiles.",
+          "locationWhenInUsePermission": "Allow app to use your location to show nearby profiles."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./src/assets/images/splash-icon.png",

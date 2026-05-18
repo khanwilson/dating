@@ -1,13 +1,14 @@
 export const baseUrl = {
-  value: 'https://api.example.com',
+  value: 'http://192.168.1.40:4000/api',
 };
 
 // API Endpoints
 export const ENDPOINTS = {
   // Auth
   AUTH: {
-    LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
+    REGISTER: '/auth/phone',
+    REQUEST_OTP: '/auth/otp/request',
+    VERIFY_OTP: '/auth/otp/verify',
     LOGOUT: '/auth/logout',
     REFRESH_TOKEN: '/auth/refresh',
   },
@@ -16,5 +17,4 @@ export const ENDPOINTS = {
     PROFILE: '/user/profile',
     UPDATE_PROFILE: '/user/profile',
   },
-  // Add more endpoints as needed
 };

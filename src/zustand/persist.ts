@@ -16,8 +16,8 @@ export interface PersistState {
   // User (legacy — from template; kept for backward compat with existing persisted state)
   user?: {
     id: string;
-    email: string;
-    name: string;
+    phoneCode: string;
+    phoneNumber: string;
   };
   // Dating profile (DAT-002)
   userProfile?: UserProfile;

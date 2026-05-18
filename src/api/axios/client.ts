@@ -1,8 +1,8 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { baseUrl } from './config';
 import {
-  setupRequestInterceptor,
-  setupResponseInterceptor
+  requestInterceptorSuccess,
+  responseInterceptorError
 } from './interceptors';
 
 class ApiClient {
@@ -22,14 +22,14 @@ class ApiClient {
 
   private setupInterceptors() {
     // Request interceptor
-    this.client.interceptors.request.use(setupRequestInterceptor(), (error) => {
+    this.client.interceptors.request.use(requestInterceptorSuccess, (error) => {
       return Promise.reject(error);
     });
 
     // Response interceptor
     this.client.interceptors.response.use((response: AxiosResponse) => {
       return response;
-    }, setupResponseInterceptor());
+    }, responseInterceptorError);
   }
 
   //! HTTP Methods
