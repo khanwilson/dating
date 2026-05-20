@@ -5,7 +5,7 @@ import { useOnboardingStep } from 'components/onboarding/useOnboardingStep';
 import { AppText } from 'components/text/AppText';
 import { Zodiac } from 'constants/enum';
 import { useRouter } from 'expo-router';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, TextInput, View } from 'react-native';
 import { ITheme, useAppTheme } from 'theme/index';
 import { getZodiacFromBirthDate } from 'utils/zodiac';
@@ -45,6 +45,9 @@ export default function BirthdayScreen() {
 
   const saved = ZustandPersist.getState().userProfile?.birthDate;
   const parsed = useMemo(() => parseSavedDate(saved), [saved]);
+
+  const monthRef = useRef<TextInput>(null);
+  const yearRef = useRef<TextInput>(null);
 
   const [day, setDay] = useState(parsed.day);
   const [month, setMonth] = useState(parsed.month);
@@ -94,7 +97,11 @@ export default function BirthdayScreen() {
             <TextInput
               style={styles.dateInput}
               value={day}
-              onChangeText={(t) => setDay(t.replace(/[^0-9]/g, '').slice(0, 2))}
+              onChangeText={(t) => {
+                const v = t.replace(/[^0-9]/g, '').slice(0, 2);
+                setDay(v);
+                if (v.length === 2) monthRef.current?.focus();
+              }}
               keyboardType="number-pad"
               maxLength={2}
               placeholder="DD"
@@ -104,9 +111,14 @@ export default function BirthdayScreen() {
           <View style={styles.dateField}>
             <AppText style={styles.dateLabel}>Month</AppText>
             <TextInput
+              ref={monthRef}
               style={styles.dateInput}
               value={month}
-              onChangeText={(t) => setMonth(t.replace(/[^0-9]/g, '').slice(0, 2))}
+              onChangeText={(t) => {
+                const v = t.replace(/[^0-9]/g, '').slice(0, 2);
+                setMonth(v);
+                if (v.length === 2) yearRef.current?.focus();
+              }}
               keyboardType="number-pad"
               maxLength={2}
               placeholder="MM"
@@ -116,6 +128,7 @@ export default function BirthdayScreen() {
           <View style={styles.dateField}>
             <AppText style={styles.dateLabel}>Year</AppText>
             <TextInput
+              ref={yearRef}
               style={styles.dateInput}
               value={year}
               onChangeText={(t) => setYear(t.replace(/[^0-9]/g, '').slice(0, 4))}

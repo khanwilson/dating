@@ -5,6 +5,7 @@ import {
   RequestOtpRequest,
   VerifyOtpRequest,
 } from 'api/services/authService';
+import { userService } from 'api/services/userService';
 import ZustandPersist from 'zustand/persist';
 
 export const AUTH_KEYS = {
@@ -16,9 +17,11 @@ export const useRegister = () => {
 
   return useMutation({
     mutationFn: (data: RegisterRequest) => authService.register(data),
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       ZustandPersist.getState().setTokens(response.accessToken, response.refreshToken);
-      ZustandPersist.getState().setUser(response.user);
+      // Token is now in store — interceptor will attach it automatically
+      const user = await userService.getProfile();
+      ZustandPersist.getState().setUser(user);
       queryClient.invalidateQueries({ queryKey: AUTH_KEYS.user });
     },
     onError: (error) => {
@@ -41,9 +44,10 @@ export const useVerifyOtp = () => {
 
   return useMutation({
     mutationFn: (data: VerifyOtpRequest) => authService.verifyOtp(data),
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       ZustandPersist.getState().setTokens(response.accessToken, response.refreshToken);
-      ZustandPersist.getState().setUser(response.user);
+      const user = await userService.getProfile();
+      ZustandPersist.getState().setUser(user);
       queryClient.invalidateQueries({ queryKey: AUTH_KEYS.user });
     },
     onError: (error) => {

@@ -32,7 +32,7 @@ export default function PhoneScreen() {
   const saved = ZustandPersist.getState().userProfile;
   const [country, setCountry] = useState<Country>(() => {
     const savedCode = saved?.phoneCode;
-    return COUNTRIES.find((c) => c.dialCode === savedCode) ?? DEFAULT_COUNTRY;
+    return COUNTRIES.find((c) => c.dialCode.replace(/^\+/, '') === savedCode) ?? DEFAULT_COUNTRY;
   });
   const [phoneNumber, setPhoneNumber] = useState(saved?.phoneNumber ?? '');
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -51,8 +51,7 @@ export default function PhoneScreen() {
 
   const handleNext = useCallback(() => {
     if (!isValid || register.isPending) return;
-    const phoneCode = country.dialCode;
-    // const phoneCode = country.dialCode.replace(/^\+/, '');
+    const phoneCode = country.dialCode.replace(/^\+/, '');
     const number = phoneNumber.trim();
     ZustandPersist.getState().setUserProfile({ phoneCode, phoneNumber: number } as any);
     register.mutate(

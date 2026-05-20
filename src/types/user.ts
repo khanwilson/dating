@@ -28,6 +28,7 @@ export interface UserProfile {
   photos: Photo[];
   interests: InterestAnswer[];
   bio?: string;
+  relationshipType?: RelationshipType;
   completed: boolean;
 }
 

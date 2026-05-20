@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ITheme, useAppTheme } from 'theme/index';
 
 const BUTTON_SIZE = 56;
@@ -12,36 +12,42 @@ interface Props {
   onBack: () => void;
   nextLabel?: string;
   nextDisabled?: boolean;
+  loading?: boolean;
 }
 
 export const OnboardingFooter = React.memo(
-  ({ currentStep, onNext, onBack, nextLabel, nextDisabled }: Props) => {
+  ({ currentStep, onNext, onBack, nextLabel, nextDisabled, loading }: Props) => {
     const theme = useAppTheme();
     const styles = useMemo(() => createStyles(theme), [theme]);
 
     const isFinish = nextLabel === 'Finish';
     const nextIconName = isFinish ? 'checkmark' : 'chevron-forward';
+    const isDisabled = nextDisabled || loading;
 
     return (
       <View style={styles.container}>
         {currentStep > 1 ? (
-          <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.7} disabled={loading}>
             <Ionicons name="chevron-back" size={ICON_SIZE} color={theme.color.neutral[300]} />
           </TouchableOpacity>
         ) : (
           <View style={styles.placeholder} />
         )}
         <TouchableOpacity
-          style={[styles.nextButton, nextDisabled && styles.nextButtonDisabled]}
+          style={[styles.nextButton, isDisabled && styles.nextButtonDisabled]}
           onPress={onNext}
-          disabled={nextDisabled}
+          disabled={isDisabled}
           activeOpacity={0.7}
         >
-          <Ionicons
-            name={nextIconName}
-            size={ICON_SIZE}
-            color={nextDisabled ? theme.color.neutral[500] : theme.color.white}
-          />
+          {loading ? (
+            <ActivityIndicator size="small" color={theme.color.white} />
+          ) : (
+            <Ionicons
+              name={nextIconName}
+              size={ICON_SIZE}
+              color={isDisabled ? theme.color.neutral[500] : theme.color.white}
+            />
+          )}
         </TouchableOpacity>
       </View>
     );

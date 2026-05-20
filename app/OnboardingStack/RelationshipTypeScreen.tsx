@@ -1,3 +1,4 @@
+import { useSubmitOnboarding } from 'api/hooks';
 import { FadeInView } from 'components/onboarding/FadeInView';
 import { OnboardingFooter } from 'components/onboarding/OnboardingFooter';
 import { OnboardingProgressBar } from 'components/onboarding/OnboardingProgressBar';
@@ -21,17 +22,29 @@ export default function RelationshipTypeScreen() {
   const router = useRouter();
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
-  const { currentStep, totalSteps, goNext, goBack } = useOnboardingStep();
+  const { currentStep, totalSteps, goBack } = useOnboardingStep();
+  const submitOnboarding = useSubmitOnboarding();
 
   const [selected, setSelected] = useState<RelationshipType | null>(
     () => ZustandPersist.getState().matchPreferences?.relationshipType ?? null,
   );
 
   const handleNext = useCallback(() => {
-    if (!selected) return;
+    if (!selected || submitOnboarding.isPending) return;
+
+    const state = ZustandPersist.getState();
     ZustandPersist.getState().setMatchPreferences({ relationshipType: selected });
-    goNext(router); // step 9 → sets completed = true → navigates to tabs
-  }, [selected, goNext, router]);
+
+    submitOnboarding.mutate(
+      {
+        userProfile: state.userProfile!,
+        matchPreferences: { ...state.matchPreferences!, relationshipType: selected },
+      },
+      {
+        onSuccess: () => router.replace('/(tabs)/SwipeScreen' as any),
+      },
+    );
+  }, [selected, submitOnboarding, router]);
 
   return (
     <View style={styles.container}>
@@ -48,12 +61,16 @@ export default function RelationshipTypeScreen() {
             />
           ))}
         </View>
+        {submitOnboarding.isError && (
+          <AppText style={styles.errorText}>Something went wrong. Please try again.</AppText>
+        )}
       </FadeInView>
       <OnboardingFooter
         currentStep={currentStep}
         onNext={handleNext}
         onBack={() => goBack(router)}
         nextDisabled={!selected}
+        loading={submitOnboarding.isPending}
         nextLabel="Finish"
       />
     </View>
@@ -73,4 +90,10 @@ const createStyles = (theme: ITheme) =>
       marginBottom: 32,
     },
     cards: { gap: 0 },
+    errorText: {
+      fontSize: theme.fontSize.p14,
+      color: theme.color.red[500],
+      textAlign: 'center',
+      marginTop: 16,
+    },
   });

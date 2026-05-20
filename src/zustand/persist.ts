@@ -13,11 +13,12 @@ export interface PersistState {
   // Auth
   accessToken?: string;
   refreshToken?: string;
-  // User (legacy — from template; kept for backward compat with existing persisted state)
   user?: {
     id: string;
     phoneCode: string;
     phoneNumber: string;
+    displayName?: string;
+    avatar?: string;
   };
   // Dating profile (DAT-002)
   userProfile?: UserProfile;

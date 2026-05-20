@@ -11,24 +11,35 @@ export default function SplashScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   useEffect(() => {
-    // TODO: remove after clearing data
-    ZustandPersist.getState().logout();
-
-    const timer = setTimeout(() => {
+    const navigate = () => {
       const state = ZustandPersist.getState();
 
-      if (state.userProfile?.completed) {
-        // Profile complete — go to main app
+      if (state.userProfile?.relationshipType) {
         router.replace('/(tabs)/SwipeScreen' as any);
         return;
       }
 
-      // Profile not complete — resume or start onboarding
-      const step = state.onboardingStep ?? 1;
-      router.replace(getOnboardingRoute(step) as any);
-    }, 1500);
+      if (state.accessToken && state.onboardingStep) {
+        router.replace(getOnboardingRoute(state.onboardingStep) as any);
+        return;
+      }
 
-    return () => clearTimeout(timer);
+      router.replace(getOnboardingRoute(1) as any);
+    };
+
+    const minDelay = new Promise<void>((res) => setTimeout(res, 1500));
+
+    if (ZustandPersist.persist.hasHydrated()) {
+      minDelay.then(navigate);
+    } else {
+      const hydrated = new Promise<void>((res) => {
+        const unsub = ZustandPersist.persist.onFinishHydration(() => {
+          unsub();
+          res();
+        });
+      });
+      Promise.all([minDelay, hydrated]).then(navigate);
+    }
   }, []);
 
   return (

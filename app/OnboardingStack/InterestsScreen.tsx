@@ -137,10 +137,10 @@ const createStyles = (theme: ITheme) =>
     },
     chipText: {
       fontSize: theme.fontSize.p14,
+      fontWeight: '600',
       color: theme.color.neutral[300],
     },
     chipTextSelected: {
       color: theme.color.primary[500],
-      fontWeight: '600',
     },
   });

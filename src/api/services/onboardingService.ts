@@ -1,3 +1,5 @@
+import { apiClient } from 'api/axios/client';
+import { ENDPOINTS } from 'api/axios/config';
 import { MatchPreferences, UserProfile } from 'types/user';
 
 export interface SubmitOnboardingRequest {
@@ -5,37 +7,17 @@ export interface SubmitOnboardingRequest {
   matchPreferences: MatchPreferences;
 }
 
-export interface SubmitOnboardingResponse {
-  success: boolean;
-  userId: string;
-}
-
-export interface GetMeResponse {
-  userProfile: UserProfile;
-  matchPreferences: MatchPreferences;
-}
-
-// Mock implementations — swap to real apiClient calls when backend is ready.
 export const onboardingService = {
-  submitOnboarding: (data: SubmitOnboardingRequest): Promise<SubmitOnboardingResponse> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ success: true, userId: `user-${Date.now()}` });
-      }, 500);
-    });
-  },
-
-  getMe: (): Promise<GetMeResponse> => {
-    // In mock mode, return from zustand — real impl would call apiClient.get('/me')
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const ZustandPersist = require('zustand/persist').default;
-        const state = ZustandPersist.getState();
-        resolve({
-          userProfile: state.userProfile!,
-          matchPreferences: state.matchPreferences!,
-        });
-      }, 300);
+  submitOnboarding: ({ userProfile, matchPreferences }: SubmitOnboardingRequest): Promise<void> => {
+    return apiClient.patch(ENDPOINTS.USER.UPDATE_PROFILE, {
+      displayName: userProfile?.displayName,
+      birthDate: userProfile?.birthDate,
+      zodiac: userProfile?.zodiac,
+      gender: userProfile?.gender,
+      bio: userProfile?.bio,
+      photos: (userProfile?.photos ?? []).map(({ uri, order }) => ({ url: uri, order })),
+      interests: userProfile?.interests,
+      ...matchPreferences,
     });
   },
 };

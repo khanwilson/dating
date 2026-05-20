@@ -1,8 +1,9 @@
-import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
+import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 import { baseUrl } from './config';
 import {
   requestInterceptorSuccess,
-  responseInterceptorError
+  responseInterceptorError,
+  responseInterceptorSuccess,
 } from './interceptors';
 
 class ApiClient {
@@ -27,9 +28,7 @@ class ApiClient {
     });
 
     // Response interceptor
-    this.client.interceptors.response.use((response: AxiosResponse) => {
-      return response;
-    }, responseInterceptorError);
+    this.client.interceptors.response.use(responseInterceptorSuccess, responseInterceptorError);
   }
 
   //! HTTP Methods

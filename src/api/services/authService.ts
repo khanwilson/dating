@@ -20,11 +20,7 @@ export interface VerifyOtpRequest {
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
-  user: {
-    id: string;
-    phoneCode: string;
-    phoneNumber: string;
-  };
+  isNewUser: boolean;
 }
 
 export const authService = {
