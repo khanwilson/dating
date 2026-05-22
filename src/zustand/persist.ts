@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LANGUAGES, ModeTheme } from 'constants/enum';
-import { MatchPreferences, UserProfile } from 'types/user';
+import { UserProfile } from 'types/user';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -22,7 +22,6 @@ export interface PersistState {
   };
   // Dating profile (DAT-002)
   userProfile?: UserProfile;
-  matchPreferences?: MatchPreferences;
   onboardingStep?: number; // 1..9; undefined = not started
   // Swipe state (DAT-008)
   iLiked?: string[];
@@ -33,7 +32,6 @@ export interface PersistState {
   setTokens: (accessToken: string, refreshToken: string) => void;
   setUser: (user: PersistState['user']) => void;
   setUserProfile: (profile: Partial<UserProfile>) => void;
-  setMatchPreferences: (prefs: Partial<MatchPreferences>) => void;
   setOnboardingStep: (step: number) => void;
   addLiked: (id: string) => void;
   addPassed: (id: string) => void;
@@ -60,9 +58,6 @@ const ZustandPersist = create<PersistState>()(
       setUserProfile: (profile) =>
         set({ userProfile: { ...get().userProfile, ...profile } as UserProfile }),
 
-      setMatchPreferences: (prefs) =>
-        set({ matchPreferences: { ...get().matchPreferences, ...prefs } as MatchPreferences }),
-
       setOnboardingStep: (step) => set({ onboardingStep: step }),
 
       addLiked: (id) => set({ iLiked: [...(get().iLiked ?? []), id] }),
@@ -70,20 +65,16 @@ const ZustandPersist = create<PersistState>()(
 
       clearProfile: () => set({
         userProfile: undefined,
-        matchPreferences: undefined,
         onboardingStep: undefined,
         iLiked: undefined,
         iPassed: undefined,
       }),
 
-      // Logout - clear auth data + dating profile + swipe state
+      // Logout - clear auth tokens only; profile data is preserved for routing decisions after re-auth
       logout: () => set({
         accessToken: undefined,
         refreshToken: undefined,
         user: undefined,
-        userProfile: undefined,
-        matchPreferences: undefined,
-        onboardingStep: undefined,
         iLiked: undefined,
         iPassed: undefined,
       }),
@@ -102,7 +93,6 @@ const ZustandPersist = create<PersistState>()(
         refreshToken: state.refreshToken,
         user: state.user,
         userProfile: state.userProfile,
-        matchPreferences: state.matchPreferences,
         onboardingStep: state.onboardingStep,
         iLiked: state.iLiked,
         iPassed: state.iPassed,

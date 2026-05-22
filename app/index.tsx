@@ -14,17 +14,18 @@ export default function SplashScreen() {
     const navigate = () => {
       const state = ZustandPersist.getState();
 
-      if (state.userProfile?.relationshipType) {
+      if (state.userProfile?.matchPreferences?.relationshipType) {
         router.replace('/(tabs)/SwipeScreen' as any);
         return;
       }
 
-      if (state.accessToken && state.onboardingStep) {
-        router.replace(getOnboardingRoute(state.onboardingStep) as any);
+      if (state.accessToken) {
+        ZustandPersist.getState().setOnboardingStep(3);
+        router.replace(getOnboardingRoute(3) as any);
         return;
       }
 
-      router.replace(getOnboardingRoute(1) as any);
+      router.replace('/SignInScreen' as any);
     };
 
     const minDelay = new Promise<void>((res) => setTimeout(res, 1500));

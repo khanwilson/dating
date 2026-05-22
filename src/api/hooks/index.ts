@@ -1,5 +1,5 @@
 // Auth hooks
-export { useLogout, useRegister, useRequestOtp, useVerifyOtp, AUTH_KEYS } from './useAuth';
+export { useLogout, useRegister, useRequestPhoneOtp, useConfirmPhoneOtp, AUTH_KEYS } from './useAuth';
 
 // User hooks
 export { useUpdateProfile, useUserProfile, USER_KEYS } from './useUser';

@@ -29,7 +29,6 @@ export function useOnboardingStep() {
   const goNext = (router: Router) => {
     if (currentStep >= TOTAL_STEPS) {
       // Final step: mark profile complete, navigate to main app
-      ZustandPersist.getState().setUserProfile({ completed: true } as any);
       ZustandPersist.getState().setOnboardingStep(TOTAL_STEPS);
       router.replace('/(tabs)/SwipeScreen' as any);
       return;
@@ -41,6 +40,10 @@ export function useOnboardingStep() {
 
   const goBack = (router: Router) => {
     if (currentStep <= 1) return;
+    if (currentStep === 3) {
+      router.replace('/SignInScreen' as any);
+      return;
+    }
     const prevStep = currentStep - 1;
     ZustandPersist.getState().setOnboardingStep(prevStep);
     router.replace(getOnboardingRoute(prevStep) as any);

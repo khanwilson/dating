@@ -22,6 +22,7 @@ export default function RootLayout() {
           <BottomSheetModalProvider>
             <Stack initialRouteName="index">
               <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="SignInScreen" options={{ headerShown: false, animation: 'none' }} />
               <Stack.Screen name="OnboardingStack" options={{ headerShown: false }} />
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             </Stack>

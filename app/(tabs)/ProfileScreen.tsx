@@ -1,11 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from 'components/text/AppText';
-import { LANGUAGES, ModeTheme } from 'constants/enum';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { changeLanguage } from 'localization/index';
 import React, { useMemo } from 'react';
-import { Dimensions, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ITheme, useAppTheme } from 'theme/index';
 import ZustandPersist from 'zustand/persist';
@@ -17,27 +15,25 @@ export default function ProfileScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const profile = ZustandPersist(useShallow((s) => s.userProfile));
-  const prefs = ZustandPersist(useShallow((s) => s.matchPreferences));
-  const themeMode = ZustandPersist(useShallow((s) => s.ThemeApp));
-  const lang = ZustandPersist(useShallow((s) => s.Localization));
-
-  const isDark = themeMode !== ModeTheme.Light;
-  const isVietnamese = lang === LANGUAGES.VIETNAMESE;
-
-  const toggleTheme = () => {
-    const next = isDark ? ModeTheme.Light : ModeTheme.Dark;
-    ZustandPersist.getState().save('ThemeApp', next);
-    theme.changeTheme(next);
-  };
-
-  const toggleLanguage = () => {
-    const next = isVietnamese ? LANGUAGES.ENGLISH : LANGUAGES.VIETNAMESE;
-    changeLanguage(next);
-  };
+  const prefs = ZustandPersist(useShallow((s) => s.userProfile?.matchPreferences));
+  // const themeMode = ZustandPersist(useShallow((s) => s.ThemeApp));
+  // const lang = ZustandPersist(useShallow((s) => s.Localization));
+  // const isDark = themeMode !== ModeTheme.Light;
+  // const isVietnamese = lang === LANGUAGES.VIETNAMESE;
+  // const toggleTheme = () => {
+  //   const next = isDark ? ModeTheme.Light : ModeTheme.Dark;
+  //   ZustandPersist.getState().save('ThemeApp', next);
+  //   theme.changeTheme(next);
+  // };
+  // const toggleLanguage = () => {
+  //   const next = isVietnamese ? LANGUAGES.ENGLISH : LANGUAGES.VIETNAMESE;
+  //   changeLanguage(next);
+  // };
 
   const handleLogout = () => {
+    ZustandPersist.getState().clearProfile();
     ZustandPersist.getState().logout();
-    router.replace('/' as any);
+    router.replace('/SignInScreen' as any);
   };
 
   const age = useMemo(() => {
@@ -122,8 +118,8 @@ export default function ProfileScreen() {
         </View>
       )}
 
-      {/* Settings */}
-      <View style={styles.section}>
+      {/* Settings — hidden until DAT-012 is implemented */}
+      {/* <View style={styles.section}>
         <AppText style={styles.sectionTitle}>Settings</AppText>
 
         <View style={styles.settingRow}>
@@ -141,7 +137,7 @@ export default function ProfileScreen() {
           </View>
           <Switch value={isVietnamese} onValueChange={toggleLanguage} trackColor={{ true: theme.color.primary[500] }} />
         </View>
-      </View>
+      </View> */}
 
       {/* Logout */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>

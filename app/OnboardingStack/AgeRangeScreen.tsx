@@ -40,7 +40,7 @@ export default function AgeRangeScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { currentStep, totalSteps, goNext, goBack } = useOnboardingStep();
 
-  const prefs = ZustandPersist.getState().matchPreferences;
+  const prefs = ZustandPersist.getState().userProfile?.matchPreferences;
   const userAge = useMemo(getUserAge, []);
   const [minText, setMinText] = useState(String(prefs?.ageMin ?? MIN_AGE));
   const [maxText, setMaxText] = useState(String(prefs?.ageMax ?? userAge));
@@ -61,7 +61,8 @@ export default function AgeRangeScreen() {
 
   const handleNext = useCallback(() => {
     if (!isValid) return;
-    ZustandPersist.getState().setMatchPreferences({ ageMin, ageMax });
+    const updatedPrefs = { ...ZustandPersist.getState().userProfile?.matchPreferences, ageMin, ageMax } as any;
+    ZustandPersist.getState().setUserProfile({ matchPreferences: updatedPrefs });
     goNext(router);
   }, [isValid, ageMin, ageMax, goNext, router]);
 

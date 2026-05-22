@@ -7,6 +7,10 @@ export interface User {
   phoneNumber: string;
   displayName?: string;
   avatar?: string;
+  // Dating profile fields returned by GET /user/profile if user completed onboarding
+  relationshipType?: string;
+  gender?: string;
+  birthDate?: string;
 }
 
 export interface UpdateProfileRequest {

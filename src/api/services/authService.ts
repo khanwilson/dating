@@ -1,17 +1,12 @@
 import { apiClient } from 'api/axios/client';
 import { ENDPOINTS } from 'api/axios/config';
 
-export interface RegisterRequest {
+export interface PhoneOtpRequest {
   phoneCode: string;
   phoneNumber: string;
 }
 
-export interface RequestOtpRequest {
-  phoneCode: string;
-  phoneNumber: string;
-}
-
-export interface VerifyOtpRequest {
+export interface PhoneOtpConfirmRequest {
   phoneCode: string;
   phoneNumber: string;
   otp: string;
@@ -24,16 +19,16 @@ export interface AuthResponse {
 }
 
 export const authService = {
-  register: (data: RegisterRequest): Promise<AuthResponse> => {
+  register: (data: PhoneOtpRequest): Promise<AuthResponse> => {
     return apiClient.post(ENDPOINTS.AUTH.REGISTER, data);
   },
 
-  requestOtp: (data: RequestOtpRequest): Promise<void> => {
-    return apiClient.post(ENDPOINTS.AUTH.REQUEST_OTP, data);
+  requestPhoneOtp: (data: PhoneOtpRequest): Promise<void> => {
+    return apiClient.post(ENDPOINTS.AUTH.PHONE_OTP_REQUEST, data);
   },
 
-  verifyOtp: (data: VerifyOtpRequest): Promise<AuthResponse> => {
-    return apiClient.post(ENDPOINTS.AUTH.VERIFY_OTP, data);
+  confirmPhoneOtp: (data: PhoneOtpConfirmRequest): Promise<AuthResponse> => {
+    return apiClient.post(ENDPOINTS.AUTH.PHONE_OTP_CONFIRM, data);
   },
 
   logout: (): Promise<void> => {

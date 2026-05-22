@@ -1,4 +1,5 @@
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import { router } from 'expo-router';
 import ZustandPersist from 'zustand/persist';
 import { handleApiError } from './common';
 
@@ -21,6 +22,7 @@ export const responseInterceptorError = (error: AxiosError) => {
 
   if (apiError.statusCode === 401) {
     ZustandPersist.getState().logout();
+    router.replace('/SignInScreen' as any);
   }
 
   return Promise.reject(apiError);

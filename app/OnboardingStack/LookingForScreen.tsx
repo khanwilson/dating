@@ -24,12 +24,13 @@ export default function LookingForScreen() {
   const { currentStep, totalSteps, goNext, goBack } = useOnboardingStep();
 
   const [selected, setSelected] = useState<GenderInterest | null>(
-    () => ZustandPersist.getState().matchPreferences?.lookingFor ?? null,
+    () => ZustandPersist.getState().userProfile?.matchPreferences?.lookingFor ?? null,
   );
 
   const handleNext = useCallback(() => {
     if (!selected) return;
-    ZustandPersist.getState().setMatchPreferences({ lookingFor: selected });
+    const prefs = { ...ZustandPersist.getState().userProfile?.matchPreferences, lookingFor: selected } as any;
+    ZustandPersist.getState().setUserProfile({ matchPreferences: prefs });
     goNext(router);
   }, [selected, goNext, router]);
 

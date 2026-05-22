@@ -28,8 +28,7 @@ export interface UserProfile {
   photos: Photo[];
   interests: InterestAnswer[];
   bio?: string;
-  relationshipType?: RelationshipType;
-  completed: boolean;
+  matchPreferences?: MatchPreferences;
 }
 
 export interface MatchPreferences {

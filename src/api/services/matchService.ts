@@ -1,39 +1,53 @@
-import { Candidate, getCandidates } from 'src/data/mockCandidates';
+import { apiClient } from 'api/axios/client';
+import { ENDPOINTS } from 'api/axios/config';
+import { Gender, RelationshipType, Zodiac } from 'constants/enum';
+import { Coordinates } from 'api/hooks/useLocation';
+
+export interface Candidate {
+  id: string;
+  displayName: string;
+  age: number;
+  distanceKm: number;
+  photos: { url: string; order: number }[];
+  gender?: Gender;
+  zodiac?: Zodiac;
+  interests?: string[];
+  bio?: string;
+  relationshipType?: RelationshipType;
+}
+
+export interface CandidatesPage {
+  candidates: Candidate[];
+  nextCursor: string | null;
+}
 
 export interface LikeResponse {
   matched: boolean;
   matchId?: string;
 }
 
-// Mock implementations — swap to real apiClient calls when backend is ready.
 export const matchService = {
-  getCandidates: (params: {
-    lookingFor: string;
-    ageMin: number;
-    ageMax: number;
-    maxDistanceKm: number;
-    relationshipType: string;
-    excludeIds: string[];
-  }): Promise<Candidate[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const ZustandPersist = require('zustand/persist').default;
-        const state = ZustandPersist.getState();
-        const results = getCandidates(
-          state.matchPreferences,
-          state.userProfile,
-          state.iLiked ?? [],
-          state.iPassed ?? [],
-        );
-        resolve(results);
-      }, 400);
-    });
+  getCandidates: async (
+    coords: Coordinates,
+    limit = 20,
+    cursor?: string,
+  ): Promise<CandidatesPage> => {
+    const params: Record<string, string | number> = {
+      lat: coords.latitude,
+      lng: coords.longitude,
+      limit,
+    };
+    if (cursor) params.cursor = cursor;
+    const response = await apiClient.get<{ data: Candidate[]; nextCursor: string | null }>(
+      ENDPOINTS.SWIPES.CANDIDATES,
+      { params },
+    );
+    return { candidates: response.data, nextCursor: response.nextCursor };
   },
 
   like: (candidateId: string): Promise<LikeResponse> => {
     return new Promise((resolve) => {
       setTimeout(() => {
-        // 20% chance of mutual match in mock
         const matched = Math.random() < 0.2;
         resolve({ matched, matchId: matched ? `match-${Date.now()}` : undefined });
       }, 300);
@@ -47,11 +61,6 @@ export const matchService = {
   },
 
   getLikedMe: (): Promise<Candidate[]> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const { ALL_CANDIDATES } = require('src/data/mockCandidates');
-        resolve(ALL_CANDIDATES.slice(5, 15));
-      }, 400);
-    });
+    return Promise.resolve([]);
   },
 };

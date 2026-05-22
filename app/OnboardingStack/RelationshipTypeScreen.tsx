@@ -26,23 +26,19 @@ export default function RelationshipTypeScreen() {
   const submitOnboarding = useSubmitOnboarding();
 
   const [selected, setSelected] = useState<RelationshipType | null>(
-    () => ZustandPersist.getState().matchPreferences?.relationshipType ?? null,
+    () => ZustandPersist.getState().userProfile?.matchPreferences?.relationshipType ?? null,
   );
 
   const handleNext = useCallback(() => {
     if (!selected || submitOnboarding.isPending) return;
 
     const state = ZustandPersist.getState();
-    ZustandPersist.getState().setMatchPreferences({ relationshipType: selected });
+    const matchPreferences = { ...state.userProfile?.matchPreferences, relationshipType: selected } as any;
+    ZustandPersist.getState().setUserProfile({ matchPreferences });
 
     submitOnboarding.mutate(
-      {
-        userProfile: state.userProfile!,
-        matchPreferences: { ...state.matchPreferences!, relationshipType: selected },
-      },
-      {
-        onSuccess: () => router.replace('/(tabs)/SwipeScreen' as any),
-      },
+      { userProfile: { ...state.userProfile!, matchPreferences } },
+      { onSuccess: () => router.replace('/(tabs)/SwipeScreen' as any) },
     );
   }, [selected, submitOnboarding, router]);
 

@@ -1,10 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from 'components/text/AppText';
-import { Candidate, getCandidates } from 'src/data/mockCandidates';
-import { Image } from 'expo-image';
+import { Candidate } from 'api/services/matchService';
+import { useCandidates } from 'api/hooks/useMatch';
 import { useLocation } from 'api/hooks/index';
-import React, { useCallback, useMemo, useState } from 'react';
-import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Dimensions,
+  Linking,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   interpolate,
@@ -17,34 +25,35 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ITheme, useAppTheme } from 'theme/index';
 import ZustandPersist from 'zustand/persist';
-import { useShallow } from 'zustand/react/shallow';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const SWIPE_THRESHOLD = SCREEN_W * 0.3;
 const MAX_ROTATION = 12;
 const CARD_MARGIN = 12;
+const PREFETCH_REMAINING = 3;
 
 export default function SwipeScreen() {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(theme, insets), [theme, insets]);
 
-  const locationState = useLocation();
+  const { coords, error: locationError, loading: locationLoading } = useLocation();
 
-  const prefs = ZustandPersist(useShallow((s) => s.matchPreferences));
-  const profile = ZustandPersist(useShallow((s) => s.userProfile));
-  const iLikedRaw = ZustandPersist(useShallow((s) => s.iLiked));
-  const iPassedRaw = ZustandPersist(useShallow((s) => s.iPassed));
-
-  const iLiked = useMemo(() => iLikedRaw ?? [], [iLikedRaw]);
-  const iPassed = useMemo(() => iPassedRaw ?? [], [iPassedRaw]);
+  const { data, isFetching, fetchNextPage, hasNextPage } = useCandidates(coords);
 
   const candidates = useMemo(
-    () => getCandidates(prefs, profile, iLiked, iPassed),
-    [prefs, profile, iLiked, iPassed],
+    () => data?.pages.flatMap((p) => p.candidates) ?? [],
+    [data],
   );
 
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const remaining = candidates.length - currentIndex;
+    if (remaining <= PREFETCH_REMAINING && hasNextPage && !isFetching) {
+      fetchNextPage();
+    }
+  }, [currentIndex, candidates.length, hasNextPage, isFetching, fetchNextPage]);
 
   const handleSwipe = useCallback(
     (direction: 'like' | 'pass') => {
@@ -57,9 +66,37 @@ export default function SwipeScreen() {
     [candidates, currentIndex],
   );
 
+  // Location permission denied
+  if (locationError) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.emptyState}>
+          <Ionicons name="location-outline" size={64} color={theme.color.neutral[500]} />
+          <AppText style={styles.emptyTitle}>Swipe needs your location</AppText>
+          <AppText style={styles.emptySubtitle}>
+            Allow location access to see nearby profiles
+          </AppText>
+          <TouchableOpacity style={styles.settingsBtn} onPress={() => Linking.openSettings()}>
+            <AppText style={styles.settingsBtnText}>Open Settings</AppText>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // Loading: waiting for location or first fetch
+  if (locationLoading || (!!coords && isFetching && candidates.length === 0)) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={theme.color.primary[500] ?? '#fff'} />
+      </View>
+    );
+  }
+
   const topCard = candidates[currentIndex];
   const nextCard = candidates[currentIndex + 1];
 
+  // Stack exhausted
   if (!topCard) {
     return (
       <View style={styles.container}>
@@ -192,7 +229,7 @@ function SwipeableCard({
     <GestureDetector gesture={gesture}>
       <Animated.View style={[styles.card, cardStyle]}>
         <Image
-          source={{ uri: candidate.photos[photoIndex] ?? candidate.photos[0] }}
+          source={{ uri: candidate.photos[photoIndex]?.url ?? candidate.photos[0]?.url }}
           style={styles.cardPhoto}
           contentFit="cover"
         />
@@ -205,30 +242,25 @@ function SwipeableCard({
           </View>
         )}
 
-        {/* Info background is on the info View itself */}
-
-        {/* LIKE stamp */}
         <Animated.View style={[styles.stamp, styles.stampLike, likeStampStyle]}>
           <AppText style={styles.stampLikeText}>LIKE</AppText>
         </Animated.View>
 
-        {/* NOPE stamp */}
         <Animated.View style={[styles.stamp, styles.stampNope, nopeStampStyle]}>
           <AppText style={styles.stampNopeText}>NOPE</AppText>
         </Animated.View>
 
-        {/* Info */}
         <View style={styles.info}>
           <AppText style={styles.nameAge}>
             {candidate.displayName}  {candidate.age}
           </AppText>
           <View style={styles.distanceRow}>
             <Ionicons name="location-outline" size={14} color="#ccc" />
-            <AppText style={styles.distanceText}>{candidate.distance} km away</AppText>
+            <AppText style={styles.distanceText}>{candidate.distanceKm} km away</AppText>
           </View>
-          {candidate.interests.length > 0 && (
+          {(candidate.interests?.length ?? 0) > 0 && (
             <View style={styles.tags}>
-              {candidate.interests.slice(0, 3).map((t) => (
+              {candidate.interests!.slice(0, 3).map((t) => (
                 <View key={t} style={styles.tag}>
                   <AppText style={styles.tagText}>{t}</AppText>
                 </View>
@@ -250,7 +282,7 @@ function StaticCard({
 }) {
   return (
     <View style={[styles.card, styles.cardBehind]}>
-      <Image source={{ uri: candidate.photos[0] }} style={styles.cardPhoto} contentFit="cover" />
+      <Image source={{ uri: candidate.photos[0]?.url }} style={styles.cardPhoto} contentFit="cover" />
       <View style={styles.info}>
         <AppText style={styles.nameAge}>
           {candidate.displayName}  {candidate.age}
@@ -262,8 +294,14 @@ function StaticCard({
 
 const createStyles = (theme: ITheme, insets: { top: number; bottom: number }) =>
   StyleSheet.create({
-    container: { flex: 1, backgroundColor: theme.color.neutral[900], paddingTop: insets.top },
-    cardArea: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: CARD_MARGIN },
+    container: {
+      flex: 1,
+      backgroundColor: theme.color.neutral[900],
+      paddingTop: insets.top,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cardArea: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: CARD_MARGIN, alignSelf: 'stretch' },
     card: {
       position: 'absolute',
       width: SCREEN_W - CARD_MARGIN * 2,
@@ -301,6 +339,7 @@ const createStyles = (theme: ITheme, insets: { top: number; bottom: number }) =>
     actions: {
       flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
       gap: 24, paddingVertical: 16, paddingBottom: insets.bottom + 8,
+      alignSelf: 'stretch',
     },
     actionBtn: {
       width: 56, height: 56, borderRadius: 28, borderWidth: 2,
@@ -309,7 +348,12 @@ const createStyles = (theme: ITheme, insets: { top: number; bottom: number }) =>
     actionPass: { borderColor: '#FF6B6B' },
     actionLike: { width: 64, height: 64, borderRadius: 32, borderColor: '#4ADE80' },
     actionSuperLike: { borderColor: '#6C63FF' },
-    emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
+    emptyState: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
     emptyTitle: { fontSize: 20, fontWeight: '700', color: theme.color.textColor.white, marginTop: 16 },
-    emptySubtitle: { fontSize: 14, color: theme.color.neutral[400], marginTop: 8 },
+    emptySubtitle: { fontSize: 14, color: theme.color.neutral[400], marginTop: 8, textAlign: 'center' },
+    settingsBtn: {
+      marginTop: 20, paddingVertical: 12, paddingHorizontal: 28,
+      borderRadius: 24, borderWidth: 1.5, borderColor: theme.color.neutral[400],
+    },
+    settingsBtnText: { fontSize: 15, color: theme.color.textColor.white, fontWeight: '600' },
   });

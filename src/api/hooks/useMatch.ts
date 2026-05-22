@@ -1,31 +1,21 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { matchService } from 'api/services/matchService';
+import { Coordinates } from 'api/hooks/useLocation';
 import ZustandPersist from 'zustand/persist';
-import { useShallow } from 'zustand/react/shallow';
 
 export const MATCH_KEYS = {
   candidates: ['match', 'candidates'] as const,
   likedMe: ['match', 'likedMe'] as const,
 };
 
-export const useCandidates = () => {
-  const prefs = ZustandPersist(useShallow((s) => s.matchPreferences));
-
-  return useQuery({
-    queryKey: [...MATCH_KEYS.candidates, prefs],
-    queryFn: () =>
-      matchService.getCandidates({
-        lookingFor: prefs?.lookingFor ?? 'everyone',
-        ageMin: prefs?.ageMin ?? 18,
-        ageMax: prefs?.ageMax ?? 80,
-        maxDistanceKm: prefs?.maxDistanceKm ?? 200,
-        relationshipType: prefs?.relationshipType ?? 'long_term',
-        excludeIds: [
-          ...(ZustandPersist.getState().iLiked ?? []),
-          ...(ZustandPersist.getState().iPassed ?? []),
-        ],
-      }),
-    enabled: !!prefs,
+export const useCandidates = (coords: Coordinates | null) => {
+  return useInfiniteQuery({
+    queryKey: [...MATCH_KEYS.candidates, coords?.latitude, coords?.longitude],
+    queryFn: ({ pageParam }) =>
+      matchService.getCandidates(coords!, 20, pageParam as string | undefined),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    enabled: !!coords,
   });
 };
 

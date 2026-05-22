@@ -27,6 +27,7 @@ export default function PhoneScreen() {
   const theme = useAppTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { currentStep, totalSteps, goNext, goBack } = useOnboardingStep();
+  const register = useRegister();
   const numberRef = useRef<TextInput>(null);
 
   const saved = ZustandPersist.getState().userProfile;
@@ -39,9 +40,6 @@ export default function PhoneScreen() {
 
   const fullNumber = `${country.dialCode}${phoneNumber.trim()}`;
   const isValid = phoneNumber.trim().length > 0 && isValidPhoneNumber(fullNumber);
-  const showError = phoneNumber.trim().length > 0 && !isValid;
-
-  const register = useRegister();
 
   const handleSelect = useCallback((selected: Country) => {
     setCountry(selected);
@@ -58,7 +56,7 @@ export default function PhoneScreen() {
       { phoneCode, phoneNumber: number },
       { onSuccess: () => goNext(router) },
     );
-  }, [isValid, country.dialCode, phoneNumber, register, goNext, router]);
+  }, [isValid, register, country.dialCode, phoneNumber, goNext, router]);
 
   return (
     <KeyboardAvoidingView
@@ -98,14 +96,6 @@ export default function PhoneScreen() {
             />
           </View>
         </View>
-
-        {showError && (
-          <AppText style={styles.errorText}>Please enter a valid phone number</AppText>
-        )}
-
-        {register.isError && (
-          <AppText style={styles.errorText}>Registration failed. Please try again.</AppText>
-        )}
       </FadeInView>
 
       <OnboardingFooter
@@ -113,6 +103,7 @@ export default function PhoneScreen() {
         onNext={handleNext}
         onBack={() => goBack(router)}
         nextDisabled={!isValid || register.isPending}
+        loading={register.isPending}
       />
 
       <CountryPickerModal
@@ -144,40 +135,18 @@ const createStyles = (theme: ITheme) =>
       marginBottom: 32,
       lineHeight: 20,
     },
-    row: {
-      flexDirection: 'row',
-      gap: 12,
-      marginHorizontal: 20,
-    },
-    fieldWrapper: {
-      borderBottomWidth: 2,
-      borderBottomColor: theme.color.primary[500],
-    },
+    row: { flexDirection: 'row', gap: 12, marginHorizontal: 20 },
+    fieldWrapper: { borderBottomWidth: 2, borderBottomColor: theme.color.primary[500] },
     codeButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6,
-      paddingVertical: 12,
-      paddingHorizontal: 4,
+      flexDirection: 'row', alignItems: 'center', gap: 6,
+      paddingVertical: 12, paddingHorizontal: 4,
     },
     flagText: { fontSize: 22 },
-    codeText: {
-      fontSize: 22,
-      fontWeight: '600',
-      color: theme.color.textColor.white,
-    },
+    codeText: { fontSize: 22, fontWeight: '600', color: theme.color.textColor.white },
     numberWrapper: { flex: 1 },
     input: {
-      fontSize: 24,
-      fontWeight: '600',
+      fontSize: 24, fontWeight: '600',
       color: theme.color.textColor.white,
-      textAlign: 'center',
-      paddingVertical: 12,
-    },
-    errorText: {
-      fontSize: theme.fontSize.p14,
-      color: theme.color.red[500],
-      textAlign: 'center',
-      marginTop: 12,
+      textAlign: 'center', paddingVertical: 12,
     },
   });

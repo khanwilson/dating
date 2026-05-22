@@ -4,11 +4,10 @@ import { MatchPreferences, UserProfile } from 'types/user';
 
 export interface SubmitOnboardingRequest {
   userProfile: UserProfile;
-  matchPreferences: MatchPreferences;
 }
 
 export const onboardingService = {
-  submitOnboarding: ({ userProfile, matchPreferences }: SubmitOnboardingRequest): Promise<void> => {
+  submitOnboarding: ({ userProfile }: SubmitOnboardingRequest): Promise<void> => {
     return apiClient.patch(ENDPOINTS.USER.UPDATE_PROFILE, {
       displayName: userProfile?.displayName,
       birthDate: userProfile?.birthDate,
@@ -17,7 +16,7 @@ export const onboardingService = {
       bio: userProfile?.bio,
       photos: (userProfile?.photos ?? []).map(({ uri, order }) => ({ url: uri, order })),
       interests: userProfile?.interests,
-      ...matchPreferences,
+      ...userProfile?.matchPreferences,
     });
   },
 };

@@ -33,7 +33,7 @@ export default function DistanceScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { currentStep, totalSteps, goNext, goBack } = useOnboardingStep();
 
-  const initialKm = ZustandPersist.getState().matchPreferences?.maxDistanceKm ?? 50;
+  const initialKm = ZustandPersist.getState().userProfile?.matchPreferences?.maxDistanceKm ?? 50;
   const [distance, setDistance] = useState(initialKm);
 
   // Shared values for smooth 60fps animation on UI thread
@@ -79,7 +79,8 @@ export default function DistanceScreen() {
   });
 
   const handleNext = useCallback(() => {
-    ZustandPersist.getState().setMatchPreferences({ maxDistanceKm: distance });
+    const updatedPrefs = { ...ZustandPersist.getState().userProfile?.matchPreferences, maxDistanceKm: distance } as any;
+    ZustandPersist.getState().setUserProfile({ matchPreferences: updatedPrefs });
     goNext(router);
   }, [distance, goNext, router]);
 
