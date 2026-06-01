@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from 'components/text/AppText';
 import { Candidate } from 'api/services/matchService';
-import { useCandidates } from 'api/hooks/useMatch';
+import { useCandidates, useLike, usePass, useSuperLike } from 'api/hooks/useMatch';
 import { useLocation } from 'api/hooks/index';
+import { MatchPopup } from 'components/modal/MatchPopup';
 import { Image } from 'expo-image';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -25,12 +26,19 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ITheme, useAppTheme } from 'theme/index';
 import ZustandPersist from 'zustand/persist';
+import { useShallow } from 'zustand/react/shallow';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const SWIPE_THRESHOLD = SCREEN_W * 0.3;
 const MAX_ROTATION = 12;
 const CARD_MARGIN = 12;
 const PREFETCH_REMAINING = 3;
+
+interface MatchState {
+  visible: boolean;
+  matchId?: string;
+  candidate: Candidate | null;
+}
 
 export default function SwipeScreen() {
   const theme = useAppTheme();
@@ -47,6 +55,15 @@ export default function SwipeScreen() {
   );
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [matchState, setMatchState] = useState<MatchState>({ visible: false, candidate: null });
+
+  const currentUserAvatar = ZustandPersist(useShallow((s) => s.userProfile?.photos?.[0]?.url ?? s.user?.avatar));
+
+  const likeMutation = useLike();
+  const passMutation = usePass();
+  const superLikeMutation = useSuperLike();
+
+  const isPending = likeMutation.isPending || passMutation.isPending || superLikeMutation.isPending;
 
   useEffect(() => {
     const remaining = candidates.length - currentIndex;
@@ -55,16 +72,59 @@ export default function SwipeScreen() {
     }
   }, [currentIndex, candidates.length, hasNextPage, isFetching, fetchNextPage]);
 
-  const handleSwipe = useCallback(
+  const advanceCard = useCallback(() => {
+    setCurrentIndex((i) => i + 1);
+  }, []);
+
+  const handleLike = useCallback(
+    (card: Candidate) => {
+      likeMutation.mutate(card.id, {
+        onSuccess: (result) => {
+          if (result.isMatch) {
+            setMatchState({ visible: true, matchId: result.matchId, candidate: card });
+          }
+        },
+      });
+      advanceCard();
+    },
+    [likeMutation, advanceCard],
+  );
+
+  const handlePass = useCallback(
+    (card: Candidate) => {
+      passMutation.mutate(card.id);
+      advanceCard();
+    },
+    [passMutation, advanceCard],
+  );
+
+  const handleSuperLike = useCallback(
+    (card: Candidate) => {
+      superLikeMutation.mutate(card.id, {
+        onSuccess: (result) => {
+          if (result.isMatch) {
+            setMatchState({ visible: true, matchId: result.matchId, candidate: card });
+          }
+        },
+      });
+      advanceCard();
+    },
+    [superLikeMutation, advanceCard],
+  );
+
+  const handleSwipeGesture = useCallback(
     (direction: 'like' | 'pass') => {
       const card = candidates[currentIndex];
       if (!card) return;
-      if (direction === 'like') ZustandPersist.getState().addLiked(card.id);
-      else ZustandPersist.getState().addPassed(card.id);
-      setCurrentIndex((i) => i + 1);
+      if (direction === 'like') handleLike(card);
+      else handlePass(card);
     },
-    [candidates, currentIndex],
+    [candidates, currentIndex, handleLike, handlePass],
   );
+
+  const dismissMatch = useCallback(() => {
+    setMatchState({ visible: false, candidate: null });
+  }, []);
 
   // Location permission denied
   if (locationError) {
@@ -117,30 +177,42 @@ export default function SwipeScreen() {
           key={topCard.id}
           candidate={topCard}
           styles={styles}
-          onSwipe={handleSwipe}
+          onSwipe={handleSwipeGesture}
+          disabled={isPending}
         />
       </View>
 
       <View style={styles.actions}>
         <TouchableOpacity
-          style={[styles.actionBtn, styles.actionPass]}
-          onPress={() => handleSwipe('pass')}
+          style={[styles.actionBtn, styles.actionPass, isPending && styles.actionDisabled]}
+          onPress={() => handlePass(topCard)}
+          disabled={isPending}
         >
           <Ionicons name="close" size={28} color="#FF6B6B" />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.actionBtn, styles.actionSuperLike]}
-          onPress={() => handleSwipe('like')}
+          style={[styles.actionBtn, styles.actionSuperLike, isPending && styles.actionDisabled]}
+          onPress={() => handleSuperLike(topCard)}
+          disabled={isPending}
         >
           <Ionicons name="star" size={24} color="#6C63FF" />
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.actionBtn, styles.actionLike]}
-          onPress={() => handleSwipe('like')}
+          style={[styles.actionBtn, styles.actionLike, isPending && styles.actionDisabled]}
+          onPress={() => handleLike(topCard)}
+          disabled={isPending}
         >
           <Ionicons name="heart" size={28} color="#4ADE80" />
         </TouchableOpacity>
       </View>
+
+      <MatchPopup
+        visible={matchState.visible}
+        currentUserAvatar={currentUserAvatar ?? undefined}
+        matchedCandidate={matchState.candidate}
+        onSendMessage={dismissMatch}
+        onKeepSwiping={dismissMatch}
+      />
     </View>
   );
 }
@@ -149,10 +221,12 @@ function SwipeableCard({
   candidate,
   styles,
   onSwipe,
+  disabled,
 }: {
   candidate: Candidate;
   styles: ReturnType<typeof createStyles>;
   onSwipe: (dir: 'like' | 'pass') => void;
+  disabled?: boolean;
 }) {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -172,6 +246,7 @@ function SwipeableCard({
   }, []);
 
   const panGesture = Gesture.Pan()
+    .enabled(!disabled)
     .onUpdate((e) => {
       translateX.value = e.translationX;
       translateY.value = e.translationY * 0.4;
@@ -348,6 +423,7 @@ const createStyles = (theme: ITheme, insets: { top: number; bottom: number }) =>
     actionPass: { borderColor: '#FF6B6B' },
     actionLike: { width: 64, height: 64, borderRadius: 32, borderColor: '#4ADE80' },
     actionSuperLike: { borderColor: '#6C63FF' },
+    actionDisabled: { opacity: 0.4 },
     emptyState: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
     emptyTitle: { fontSize: 20, fontWeight: '700', color: theme.color.textColor.white, marginTop: 16 },
     emptySubtitle: { fontSize: 14, color: theme.color.neutral[400], marginTop: 8, textAlign: 'center' },

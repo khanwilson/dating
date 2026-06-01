@@ -22,9 +22,11 @@ export interface CandidatesPage {
 }
 
 export interface LikeResponse {
-  matched: boolean;
+  isMatch: boolean;
   matchId?: string;
 }
+
+type SwipeAction = 'LIKE' | 'PASS' | 'SUPERLIKE';
 
 export const matchService = {
   getCandidates: async (
@@ -45,22 +47,44 @@ export const matchService = {
     return { candidates: response.data, nextCursor: response.nextCursor };
   },
 
-  like: (candidateId: string): Promise<LikeResponse> => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const matched = Math.random() < 0.2;
-        resolve({ matched, matchId: matched ? `match-${Date.now()}` : undefined });
-      }, 300);
+  like: async (toUserId: string): Promise<LikeResponse> => {
+    const res = await apiClient.post<unknown>(ENDPOINTS.SWIPES.ACTION, {
+      toUserId,
+      action: 'LIKE' as SwipeAction,
+    });
+    const data = (res as any)?.data ?? res;
+    return { isMatch: data?.isMatch ?? false, matchId: data?.matchId };
+  },
+
+  pass: async (toUserId: string): Promise<void> => {
+    await apiClient.post<unknown>(ENDPOINTS.SWIPES.ACTION, {
+      toUserId,
+      action: 'PASS' as SwipeAction,
     });
   },
 
-  pass: (candidateId: string): Promise<void> => {
-    return new Promise((resolve) => {
-      setTimeout(resolve, 200);
+  superLike: async (toUserId: string): Promise<LikeResponse> => {
+    const res = await apiClient.post<unknown>(ENDPOINTS.SWIPES.ACTION, {
+      toUserId,
+      action: 'SUPERLIKE' as SwipeAction,
     });
+    const data = (res as any)?.data ?? res;
+    return { isMatch: data?.isMatch ?? false, matchId: data?.matchId };
   },
 
-  getLikedMe: (): Promise<Candidate[]> => {
-    return Promise.resolve([]);
+  getLikedMe: async (): Promise<Candidate[]> => {
+    const res = await apiClient.get<unknown>(ENDPOINTS.SWIPES.LIKED_ME);
+    return (res as any)?.data ?? res ?? [];
+  },
+
+  getLikedByMe: async (): Promise<Candidate[]> => {
+    const res = await apiClient.get<unknown>(ENDPOINTS.SWIPES.LIKED_BY_ME);
+    return (res as any)?.data ?? res ?? [];
+  },
+
+  unmatch: async (matchId: string): Promise<void> => {
+    await apiClient.patch<unknown>(ENDPOINTS.MATCHES.UNMATCH(matchId), {
+      status: 'unmatched',
+    });
   },
 };

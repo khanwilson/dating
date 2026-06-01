@@ -1,32 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from 'components/text/AppText';
+import { Candidate } from 'api/services/matchService';
+import { useLikedByMe, useLikedMe } from 'api/hooks/useMatch';
 import { Image } from 'expo-image';
 import React, { useMemo, useState } from 'react';
-import { Dimensions, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ALL_CANDIDATES, Candidate } from 'src/data/mockCandidates';
 import { ITheme, useAppTheme } from 'theme/index';
-import ZustandPersist from 'zustand/persist';
-import { useShallow } from 'zustand/react/shallow';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const GRID_GAP = 4;
 const GRID_COLS = 3;
 const CELL_SIZE = (SCREEN_W - 24 * 2 - GRID_GAP * (GRID_COLS - 1)) / GRID_COLS;
-
-// Mock "liked me" profiles — fixed set of candidate ids that pretend to like the user.
-const LIKED_ME_IDS = ALL_CANDIDATES.slice(5, 15).map((c) => c.id);
-
-const candidateMap = new Map(ALL_CANDIDATES.map((c) => [c.id, c]));
-
-function lookupCandidates(ids: string[]): Candidate[] {
-  const result: Candidate[] = [];
-  for (const id of ids) {
-    const c = candidateMap.get(id);
-    if (c) result.push(c);
-  }
-  return result;
-}
 
 type Tab = 'liked' | 'likedMe';
 
@@ -36,17 +21,17 @@ export default function LikesScreen() {
   const styles = useMemo(() => createStyles(theme), [theme]);
   const [activeTab, setActiveTab] = useState<Tab>('liked');
 
-  const iLikedRaw = ZustandPersist(useShallow((s) => s.iLiked));
-  const iLiked = useMemo(() => iLikedRaw ?? [], [iLikedRaw]);
+  const { data: likedByMeData, isLoading: likedByMeLoading } = useLikedByMe();
+  const { data: likedMeData, isLoading: likedMeLoading } = useLikedMe();
 
-  const likedProfiles = useMemo(() => lookupCandidates(iLiked), [iLiked]);
-  const likedMeProfiles = useMemo(() => lookupCandidates(LIKED_ME_IDS), []);
+  const likedProfiles = likedByMeData ?? [];
+  const likedMeProfiles = likedMeData ?? [];
 
   const renderThumbnail = useMemo(
     () =>
       ({ item }: { item: Candidate }) => (
         <View style={styles.cell}>
-          <Image source={{ uri: item.photos[0] }} style={styles.cellPhoto} contentFit="cover" />
+          <Image source={{ uri: item.photos[0]?.url }} style={styles.cellPhoto} contentFit="cover" />
           <View style={styles.cellInfo}>
             <AppText style={styles.cellName} numberOfLines={1}>
               {item.displayName}, {item.age}
@@ -82,7 +67,11 @@ export default function LikesScreen() {
       </View>
 
       {activeTab === 'liked' ? (
-        likedProfiles.length === 0 ? (
+        likedByMeLoading ? (
+          <View style={styles.loadingState}>
+            <ActivityIndicator size="large" color={theme.color.primary[500]} />
+          </View>
+        ) : likedProfiles.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="heart-outline" size={56} color={theme.color.neutral[600]} />
             <AppText style={styles.emptyTitle}>No likes yet</AppText>
@@ -100,14 +89,20 @@ export default function LikesScreen() {
         )
       ) : (
         <View style={styles.gridWrapper}>
-          <FlatList
-            data={likedMeProfiles}
-            keyExtractor={(c) => c.id}
-            numColumns={GRID_COLS}
-            contentContainerStyle={styles.grid}
-            columnWrapperStyle={styles.gridRow}
-            renderItem={renderThumbnail}
-          />
+          {likedMeLoading ? (
+            <View style={styles.loadingState}>
+              <ActivityIndicator size="large" color={theme.color.primary[500]} />
+            </View>
+          ) : (
+            <FlatList
+              data={likedMeProfiles}
+              keyExtractor={(c) => c.id}
+              numColumns={GRID_COLS}
+              contentContainerStyle={styles.grid}
+              columnWrapperStyle={styles.gridRow}
+              renderItem={renderThumbnail}
+            />
+          )}
           {/* Paywall overlay */}
           <View style={styles.paywall}>
             <View style={styles.paywallCard}>
@@ -164,6 +159,7 @@ const createStyles = (theme: ITheme) =>
     },
     cellName: { fontSize: 11, fontWeight: '600', color: '#fff' },
     gridWrapper: { flex: 1 },
+    loadingState: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     paywall: {
       ...StyleSheet.absoluteFillObject,
       backgroundColor: 'rgba(0,0,0,0.7)',

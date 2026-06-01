@@ -20,5 +20,12 @@ export const ENDPOINTS = {
   // Swipes
   SWIPES: {
     CANDIDATES: '/swipes/candidates',
+    ACTION: '/swipes',
+    LIKED_ME: '/swipes/liked-me',
+    LIKED_BY_ME: '/swipes/liked-by-me',
+  },
+  // Matches
+  MATCHES: {
+    UNMATCH: (matchId: string) => `/matches/${matchId}`,
   },
 };

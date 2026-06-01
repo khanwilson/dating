@@ -8,7 +8,7 @@ export { useUpdateProfile, useUserProfile, USER_KEYS } from './useUser';
 export { useSubmitOnboarding, ONBOARDING_KEYS } from './useOnboarding';
 
 // Match hooks
-export { useCandidates, useLike, useLikedMe, usePass, MATCH_KEYS } from './useMatch';
+export { useCandidates, useLike, useLikedMe, useLikedByMe, usePass, useSuperLike, useUnmatch, MATCH_KEYS } from './useMatch';
 
 // Chat hooks
 export { useConversations, useMarkAsRead, useMessages, useSendMessage, CHAT_KEYS } from './useChat';

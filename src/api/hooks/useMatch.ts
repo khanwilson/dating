@@ -6,6 +6,7 @@ import ZustandPersist from 'zustand/persist';
 export const MATCH_KEYS = {
   candidates: ['match', 'candidates'] as const,
   likedMe: ['match', 'likedMe'] as const,
+  likedByMe: ['match', 'likedByMe'] as const,
 };
 
 export const useCandidates = (coords: Coordinates | null) => {
@@ -20,23 +21,28 @@ export const useCandidates = (coords: Coordinates | null) => {
 };
 
 export const useLike = () => {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (candidateId: string) => matchService.like(candidateId),
     onSuccess: (_result, candidateId) => {
       ZustandPersist.getState().addLiked(candidateId);
-      queryClient.invalidateQueries({ queryKey: MATCH_KEYS.candidates });
     },
   });
 };
 
 export const usePass = () => {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (candidateId: string) => matchService.pass(candidateId),
     onSuccess: (_result, candidateId) => {
       ZustandPersist.getState().addPassed(candidateId);
-      queryClient.invalidateQueries({ queryKey: MATCH_KEYS.candidates });
+    },
+  });
+};
+
+export const useSuperLike = () => {
+  return useMutation({
+    mutationFn: (candidateId: string) => matchService.superLike(candidateId),
+    onSuccess: (_result, candidateId) => {
+      ZustandPersist.getState().addLiked(candidateId);
     },
   });
 };
@@ -45,5 +51,23 @@ export const useLikedMe = () => {
   return useQuery({
     queryKey: MATCH_KEYS.likedMe,
     queryFn: () => matchService.getLikedMe(),
+  });
+};
+
+export const useLikedByMe = () => {
+  return useQuery({
+    queryKey: MATCH_KEYS.likedByMe,
+    queryFn: () => matchService.getLikedByMe(),
+  });
+};
+
+export const useUnmatch = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (matchId: string) => matchService.unmatch(matchId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: MATCH_KEYS.likedMe });
+      queryClient.invalidateQueries({ queryKey: MATCH_KEYS.likedByMe });
+    },
   });
 };
